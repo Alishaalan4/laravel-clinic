@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->decimal('height,5,2');
-            $table->decimal('weight,5,2');
+            $table->decimal('height',5,2);
+            $table->decimal('weight',5,2);
             $table->enum('blood_type', ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'])->nullable();
             $table->string('specialization');
             $table->enum('gender',['male','female']);

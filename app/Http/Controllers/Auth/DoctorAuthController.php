@@ -51,7 +51,7 @@ class DoctorAuthController extends Controller
         $token=$doctor->createToken("auth_token")->plainTextToken;
         return response()->json([
             "message"=>"Login Suceessfull",
-            "user"=>$doctor,
+            "doctor"=>$doctor,
             "token"=>$token
         ],200);
     }
