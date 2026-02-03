@@ -41,9 +41,9 @@ Route::middleware(['auth:sanctum','role:user'])->prefix('user')->group(function 
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::post('/updatePassword',[ProfileController::class,'updatePassword']);
     // Doctors
+    Route::get('/doctors/search', [DoctorController::class, 'search']);
     Route::get('/doctors', [DoctorController::class, 'index']);
     Route::get('/doctors/{doctor}', [DoctorController::class, 'show']);
-    Route::get('/doctors/search', [DoctorController::class, 'search']);
     Route::get('/doctors/{doctor}/availability', [DoctorController::class, 'availability']);
 
     // Appointments

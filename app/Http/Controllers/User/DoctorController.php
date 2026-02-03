@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Doctor;
 use App\Models\DoctorAvailability;
+use App\Models\Appointment;
 
 class DoctorController extends Controller
 {
@@ -30,35 +31,76 @@ class DoctorController extends Controller
 
     public function search(Request $request)
     {
-        $request->validate([
-            'search' => 'required|string|min:1',
-        ]);
-        $search = $request->search;
-        $doctors = Doctor::where('name', 'LIKE', "%{$search}%")
-            ->orWhere('specialization', 'LIKE', "%{$search}%")
-            ->get();
-
-        if ($doctors->isEmpty()) {
+        $query = $request->get('query');
+        if (!$query) {
             return response()->json([
-                'msg' => 'No doctors found'
-            ], 404);
+                'message' => 'Search query is required',
+                'doctors' => []
+            ], 422);
         }
-        return response()->json($doctors, 200);
+
+        $doctors = Doctor::where(function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%")
+                    ->orWhere('specialization', 'LIKE', "%{$query}%");
+            })
+            ->select('id','name','specialization','gender')
+            ->get();
+        return response()->json([
+            'doctors' => $doctors
+        ]);
     }
 
-    public function availability($id)
+    public function availability(Request $request, Doctor $doctor)
     {
-        // get availability by doctor id
-        $doctor = Doctor::find($id);
-        if (!$doctor)
-        {
-            return response()->json(['msg'=> 'Doctor Not Found']);
+        $request->validate([
+            'date' => 'required|date|after_or_equal:today'
+        ]);
+
+        $date = $request->date;
+        $dayName = date('l', strtotime($date));
+
+        // Doctor working hours
+        $availability = DoctorAvailability::where('doctor_id', $doctor->id)
+            ->where('day_of_week', $dayName)
+            ->first();
+
+        if (!$availability) {
+            return response()->json([
+                'message' => 'Doctor is not available on this day',
+                'slots' => []
+            ]);
         }
-        $doctor_availability = DoctorAvailability::where('doctor_id',$doctor->id)->get();
-        if ($doctor_availability->isEmpty() || $doctor_availability->count() == 0)
-        {
-            return response()->json(['msg'=> 'No Availibility Found'],404);
+
+        // Already booked times
+        $bookedTimes = Appointment::where('doctor_id', $doctor->id)
+            ->where('appointment_date', $date)
+            ->whereIn('status', ['pending','booked'])
+            ->pluck('appointment_time')
+            ->toArray();
+
+        // Generate 30-minute slots
+        $slots = [];
+        $start = strtotime($availability->start_time);
+        $end   = strtotime($availability->end_time);
+
+        while ($start < $end) {
+            $time = date('H:i', $start);
+
+            if (!in_array($time, $bookedTimes)) {
+                $slots[] = $time;
+            }
+
+            $start = strtotime('+30 minutes', $start);
         }
-        return response()->json($doctor_availability, 200);
+
+        return response()->json([
+            'doctor' => [
+                'id' => $doctor->id,
+                'name' => $doctor->name,
+                'specialization' => $doctor->specialization,
+            ],
+            'date' => $date,
+            'available_slots' => $slots
+        ]);
     }
 }

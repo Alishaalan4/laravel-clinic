@@ -25,7 +25,7 @@ class AppointmentController extends Controller
     public function show($id)
     {
         $appointment = Appointment::find($id);
-        if ($appointment->isEmpty())    
+        if (!$appointment)    
         {
             return response()->json(["msg"=> "no available appointment"]);
         }
