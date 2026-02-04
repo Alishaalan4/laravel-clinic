@@ -56,7 +56,7 @@ Route::middleware(['auth:sanctum','role:user'])->prefix('user')->group(function 
 Route::middleware(['auth:sanctum','role:doctor'])->prefix('doctor')->group(function () {
 
     // Profile
-    Route::get('/profile', [DoctorProfileController::class, 'show']);
+    Route::get('/profile', [DoctorProfileController::class, 'index']);
     Route::put('/profile', [DoctorProfileController::class, 'update']);
 
     // Availability
