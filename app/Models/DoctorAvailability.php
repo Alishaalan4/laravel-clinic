@@ -8,14 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 class DoctorAvailability extends Model
 {
     use HasFactory;
-        protected $fillable = [
+    protected $table = 'doctor_availability';
+    protected $fillable = [
         'doctor_id',
         'day_of_week',
+        'date',
         'start_time',
         'end_time',
     ];
 
     protected $casts = [
+        'date' => 'date:Y-m-d',
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
     ];

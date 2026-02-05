@@ -16,10 +16,10 @@ class Appointment extends Model
         'cancel_reason',
     ];
 
-    protected $casts = [
-        'appointment_date'=> 'date',
-        'appointment_time'=> 'date'
-        ];
+protected $casts = [
+    'appointment_date' => 'date:Y-m-d',
+    'appointment_time' => 'string',
+];
 
     public function user()
     {

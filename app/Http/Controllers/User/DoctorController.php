@@ -13,9 +13,11 @@ class DoctorController extends Controller
     public function index()
     {
         $doctors = Doctor::all();
-        if (!$doctors)
+        if ($doctors->count() == 0) 
         {
+            {
             return response()->json(["msg"=>"No Doctors Found"]);
+            }
         }
         return response()->json($doctors);
     }
@@ -57,17 +59,17 @@ class DoctorController extends Controller
         ]);
 
         $date = $request->date;
-        $dayName = date('l', strtotime($date));
 
-        // Doctor working hours
+        // Doctor working blocks for a specific date
         $availability = DoctorAvailability::where('doctor_id', $doctor->id)
-            ->where('day_of_week', $dayName)
-            ->first();
+            ->where('date', $date)
+            ->orderBy('start_time')
+            ->get();
 
-        if (!$availability) {
+        if ($availability->isEmpty()) {
             return response()->json([
                 'message' => 'Doctor is not available on this day',
-                'slots' => []
+                'available_blocks' => []
             ]);
         }
 
@@ -76,22 +78,23 @@ class DoctorController extends Controller
             ->where('appointment_date', $date)
             ->whereIn('status', ['pending','booked'])
             ->pluck('appointment_time')
+            ->map(function ($time) {
+                return date('H:i', strtotime($time));
+            })
             ->toArray();
 
-        // Generate 30-minute slots
-        $slots = [];
-        $start = strtotime($availability->start_time);
-        $end   = strtotime($availability->end_time);
-
-        while ($start < $end) {
-            $time = date('H:i', $start);
-
-            if (!in_array($time, $bookedTimes)) {
-                $slots[] = $time;
-            }
-
-            $start = strtotime('+30 minutes', $start);
-        }
+        // Filter blocks that are already booked (by start_time)
+        $availableBlocks = $availability
+            ->reject(function ($block) use ($bookedTimes) {
+                return in_array($block->start_time, $bookedTimes);
+            })
+            ->values()
+            ->map(function ($block) {
+                return [
+                    'start_time' => date('H:i', strtotime($block->start_time)),
+                    'end_time' => date('H:i', strtotime($block->end_time))
+                ];
+            });
 
         return response()->json([
             'doctor' => [
@@ -100,7 +103,7 @@ class DoctorController extends Controller
                 'specialization' => $doctor->specialization,
             ],
             'date' => $date,
-            'available_slots' => $slots
+            'available_blocks' => $availableBlocks
         ]);
     }
 }

@@ -13,34 +13,59 @@ class AvailabilityController extends Controller
         $doctor = $request->user();
         if (! $doctor) 
         {
-            return response()->json([["message"=> "Doctor not found"]]);
+            return response()->json(["message"=> "Doctor not found"], 401);
         }
-        return response()->json($doctor->availability());
+        return response()->json(
+            $doctor->availability()->orderBy('date')->orderBy('start_time')->get()
+        );
     }
     public function store(Request $request)
     {
-            $doctor = $request->user();
+        $doctor = $request->user();
+        if (! $doctor)
+        {
+            return response()->json(["message"=> "Doctor Not found"], 401);
+        }
 
         $data = $request->validate([
-            'day_of_week' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
         ]);
 
-        // One availability per day (overwrite)
-        DoctorAvailability::updateOrCreate(
-            [
-                'doctor_id' => $doctor->id,
-                'day_of_week' => $data['day_of_week']
-            ],
-            [
-                'start_time' => $data['start_time'],
-                'end_time' => $data['end_time']
-            ]
-        );
+        $dayName = date('l', strtotime($data['date']));
+        $allowedDays = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+        if (!in_array($dayName, $allowedDays, true)) {
+            return response()->json([
+                'message' => 'Availability must be on a weekday (Monday to Friday)'
+            ], 422);
+        }
+
+        $overlapExists = DoctorAvailability::where('doctor_id', $doctor->id)
+            ->where('date', $data['date'])
+            ->where(function ($q) use ($data) {
+                $q->where('start_time', '<', $data['end_time'])
+                    ->where('end_time', '>', $data['start_time']);
+            })
+            ->exists();
+
+        if ($overlapExists) {
+            return response()->json([
+                'message' => 'Availability overlaps an existing block'
+            ], 422);
+        }
+
+        $availability = DoctorAvailability::create([
+            'doctor_id' => $doctor->id,
+            'date' => $data['date'],
+            'day_of_week' => $dayName,
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time']
+        ]);
 
         return response()->json([
-            'message' => 'Availability saved successfully'
+            'message' => 'Availability saved successfully',
+            'availability' => $availability
         ]);
     }
 }

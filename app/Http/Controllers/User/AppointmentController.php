@@ -41,40 +41,22 @@ class AppointmentController extends Controller
             'file'             => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        $minutes = (int) date('i', strtotime($data['appointment_time']));
-
-        if ($minutes % 30 !== 0) {
-            return response()->json([
-                'message' => 'Appointments must be booked in 30-minute intervals'
-            ], 422);
-        }
         // Check doctor exists
         $doctor = Doctor::findOrFail($data['doctor_id']);
 
-        // check doctor availability for that day
-        $dayName = date('l', strtotime($data['appointment_date']));
-
+        // check doctor availability for that date
         $availability = DoctorAvailability::where('doctor_id', $doctor->id)
-            ->where('day_of_week', $dayName)
+            ->where('date', $data['appointment_date'])
+            ->where('start_time', $data['appointment_time'])
             ->first();
 
         if (!$availability) {
             return response()->json([
-                'message' => 'Doctor is not available on this day'
+                'message' => 'Selected time is not one of the doctor available blocks'
             ], 422);
         }
 
-        //  Check time is within working hours
-        if (
-            $data['appointment_time'] < $availability->start_time ||
-            $data['appointment_time'] >= $availability->end_time
-        ) {
-            return response()->json([
-                'message' => 'Selected time is outside doctor working hours'
-            ], 422);
-        }
-
-        // 5️⃣ Check 30-minute slot availability
+        // Check block availability
         $exists = Appointment::where('doctor_id', $doctor->id)
             ->where('appointment_date', $data['appointment_date'])
             ->where('appointment_time', $data['appointment_time'])

@@ -13,7 +13,7 @@ class ProfileController extends Controller
         $user=$request->user();
         if (!$user)
         {
-            return response()->json(["msg"=>"unauthenticated",401]);
+            return response()->json(["msg"=>"unauthenticated"],401);
         }
         return response()->json($user,200);
     }

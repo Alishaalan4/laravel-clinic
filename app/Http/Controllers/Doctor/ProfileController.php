@@ -38,11 +38,11 @@ class ProfileController extends Controller
             'specialization' => 'nullable|string|max:255',
             'password' => 'nullable|min:6'
         ]);
-        if (isset($data['password'])) 
+        if (isset($validate['password'])) 
         {
-            $data['password'] = Hash::make($validate['password']);
+            $validate['password'] = Hash::make($validate['password']);
         }
         $doctor->update($validate);
-        return response()->json(['msg'=> 'Profile updates',$doctor]);
+        return response()->json(['msg'=> 'Profile updated',$doctor]);
     }
 }
