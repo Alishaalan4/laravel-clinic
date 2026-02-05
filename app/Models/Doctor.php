@@ -58,6 +58,6 @@ class Doctor extends Model
     }
     public function cancelledAppointments()
     {
-        return $this->appointments()->where('status','cancelled')->count();
+        return $this->appointments()->where('status','canceleld')->count();
     }
 }

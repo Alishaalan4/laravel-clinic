@@ -46,7 +46,7 @@ class AppointmentController extends Controller
             [
                 'reason'=>'required|string|min:3'
             ]);
-        $appointment->update(['status'=> 'cancelled','cancel_reason'=>$validate['reason']]);
+        $appointment->update(['status'=> 'canceleld','cancel_reason'=>$validate['reason']]);
         // email sending 
         return response()->json(['msg'=> 'Appointment cancelled'],200);
     }
