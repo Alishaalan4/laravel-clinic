@@ -78,19 +78,26 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')->group(functio
 
     // Admin management
     Route::post('/admins', [AdminController::class, 'store']);
+    Route::get('/admins/{admin}', [AdminController::class,'show']);
+    Route::get('/admins', [AdminController::class,'index']);
+    Route::post('/admins/{admin}/changePassword', [AdminController::class,'changePassword']);
 
     // Users
     Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users{user}', [UserController::class,'show']);
+    Route::post('/users/{user}/changePassword', [UserController::class,'changePassword']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
 
     // Doctors
     Route::get('/doctors', [AdminDoctorController::class, 'index']);
     Route::post('/doctors', [AdminDoctorController::class, 'store']);
+    Route::get('/doctors/{doctor}', [AdminDoctorController::class,'show']);
     Route::delete('/doctors/{doctor}', [AdminDoctorController::class, 'destroy']);
 
     // Appointments
     Route::get('/appointments', [AdminAppointmentController::class, 'index']);
     Route::post('/appointments', [AdminAppointmentController::class, 'store']);
+    Route::get('/appointments/{appointment}', [AdminAppointmentController::class,'show']);
 
     // Stats
     Route::get('/stats', [AdminController::class, 'stats']);
