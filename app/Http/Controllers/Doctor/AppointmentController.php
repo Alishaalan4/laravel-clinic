@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Doctor;
 class AppointmentController extends Controller
 {
     private function authorizeDoctor(Appointment $appointment, Request $request)
@@ -61,15 +62,16 @@ class AppointmentController extends Controller
         return response()->json(['msg'=> 'Appointment is Completed'],200);
     }
 
+// ready functions in doctor model
     public function stats(Request $request)
     {
         $doctor= $request->user();
         return response()->json([
-            'total Appointments' => $doctor->appointments()->count(),
-            'pending' => $doctor->appointments()->where('status','pending')->count(),
-            'booked' => $doctor->appointments()->where('status','booked')->count(),
-            'completed' => $doctor->appointments()->where('status','completed')->count(),
-            'cancelled' => $doctor->appointments()->where('status','cancelled')->count(),
+            'total Appointments' => $doctor->totalAppointments(),
+            'pending' => $doctor->pendingAppointments(),
+            'booked' => $doctor->bookedAppointments(),
+            'completed' => $doctor->completedAppointments(),
+            'cancelled' => $doctor->cancelledAppointments(),
         ]);
     }
 }
