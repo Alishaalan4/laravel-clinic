@@ -85,6 +85,8 @@ class AppointmentController extends Controller
             'status'           => 'pending',
         ]);
 
+        $appointment->notifyStatus('pending', 'user');
+
         return response()->json([
             'message' => 'Appointment booked successfully and is pending doctor approval',
             'appointment' => $appointment

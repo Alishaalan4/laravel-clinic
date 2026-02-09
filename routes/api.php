@@ -68,6 +68,7 @@ Route::middleware(['auth:sanctum','role:doctor'])->prefix('doctor')->group(funct
     Route::post('/appointments/{appointment}/accept', [DoctorAppointmentController::class, 'accept']);
     Route::post('/appointments/{appointment}/cancel', [DoctorAppointmentController::class, 'cancel']);
     Route::post('/appointments/{appointment}/complete', [DoctorAppointmentController::class, 'complete']);
+    Route::get('/appointments/{appointment}/file', [DoctorAppointmentController::class, 'file']);
 
     // Stats
     Route::get('/stats', [DoctorAppointmentController::class, 'stats']);

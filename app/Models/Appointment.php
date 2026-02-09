@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Notifications\AppointmentStatusNotification;
 
 class Appointment extends Model
 {
@@ -28,5 +29,20 @@ protected $casts = [
     public function doctor()
     {
         return $this->belongsTo(Doctor::class);
+    }
+
+    public function notifyStatus(string $status, string $actor): void
+    {
+        $this->loadMissing(['user', 'doctor']);
+
+        $notification = new AppointmentStatusNotification($this, $status, $actor);
+
+        if ($this->user) {
+            $this->user->notify($notification);
+        }
+
+        if ($this->doctor) {
+            $this->doctor->notify($notification);
+        }
     }
 }

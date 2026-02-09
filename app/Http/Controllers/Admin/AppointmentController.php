@@ -39,6 +39,8 @@ class AppointmentController extends Controller
             'status'           => 'booked',
         ]);
 
+        $appointment->notifyStatus('booked', 'admin');
+
         return response()->json([
             'message' => 'Appointment created by admin',
             'appointment' => $appointment
