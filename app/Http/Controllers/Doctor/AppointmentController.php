@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Doctor;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Appointment;
+use Illuminate\Support\Facades\Storage;
 
 class AppointmentController extends Controller
 {
@@ -80,12 +81,12 @@ class AppointmentController extends Controller
             return response()->json(['msg' => 'No file uploaded for this appointment'], 404);
         }
 
-        $publicPath = public_path('storage/' . $appointment->file_upload);
-        if (! file_exists($publicPath)) {
+        if (! Storage::disk('public')->exists($appointment->file_upload)) {
             return response()->json(['msg' => 'File not found'], 404);
         }
 
-        return response()->download($publicPath);
+        $filePath = Storage::disk('public')->path($appointment->file_upload);
+        return response()->download($filePath);
     }
 
 // ready functions in doctor model
