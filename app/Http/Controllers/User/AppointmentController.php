@@ -15,7 +15,7 @@ class AppointmentController extends Controller
 {
     public function index()
     {
-        $appointment = Appointment::latest()->paginate(10);
+        $appointment = Appointment::with(['doctor', 'user'])->latest()->paginate(10);
         if ($appointment->isEmpty()) 
         {
             return response()->json(["msg"=>"No Available Appointments"]);
@@ -24,7 +24,7 @@ class AppointmentController extends Controller
     }
     public function show($id)
     {
-        $appointment = Appointment::find($id);
+        $appointment = Appointment::with(['doctor', 'user'])->find($id);
         if (!$appointment)    
         {
             return response()->json(["msg"=> "no available appointment"]);

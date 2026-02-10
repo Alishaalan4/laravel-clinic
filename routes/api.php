@@ -62,6 +62,7 @@ Route::middleware(['auth:sanctum','role:doctor'])->prefix('doctor')->group(funct
     // Availability
     Route::post('/availability', [AvailabilityController::class, 'store']);
     Route::get('/availability', [AvailabilityController::class, 'index']);
+    Route::delete('/availability/{id}', [AvailabilityController::class,'delete']);
 
     // Appointments
     Route::get('/appointments', [DoctorAppointmentController::class, 'index']);

@@ -68,4 +68,10 @@ class AvailabilityController extends Controller
             'availability' => $availability
         ]);
     }
+    public function delete($id)
+    {
+        $availability = DoctorAvailability::findOrFail($id);
+        $availability->delete();
+        return response()->json(['message'=> 'Availability Deleted']);
+    }
 }
