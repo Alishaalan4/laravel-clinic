@@ -97,6 +97,8 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')->group(functio
     Route::post('/doctors', [AdminDoctorController::class, 'store']);
     Route::get('/doctors/{doctor}', [AdminDoctorController::class,'show']);
     Route::delete('/doctors/{doctor}', [AdminDoctorController::class, 'destroy']);
+    Route::post('/doctors/{doctor}/changePassword', [AdminDoctorController::class,'changePassword']);
+
 
     // Appointments
     Route::get('/appointments', [AdminAppointmentController::class, 'index']);

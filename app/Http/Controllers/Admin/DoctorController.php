@@ -58,4 +58,19 @@ class DoctorController extends Controller
         $doctor = Doctor::find($id);
         return response()->json($doctor);
     }
+        public function changePassword(Request $request,$id)
+    {
+        $data = $request->validate([
+            'new_password'     => 'required|string|min:6',
+            'confirm_password' => 'required|string|same:new_password',
+        ]);
+        $user = Doctor::find($id);
+        $user->update([
+            'password' => bcrypt($data['new_password'])
+        ]);
+
+        return response()->json([
+            'message' => 'Doctor password updated successfully by admin'
+        ]);
+    }
 }
