@@ -24,9 +24,40 @@ class AppointmentController extends Controller
         {
             return response()->json(["msg"=>"Doctor not found"]);
         }
-        $appointment = Appointment::with('user')
-            ->where('doctor_id', $doctor->id)
-            ->orderBy('appointment_date')
+        
+        $query = Appointment::with('user')
+            ->where('doctor_id', $doctor->id);
+
+        // Filter by Patient Name
+        if ($request->filled('patient_name')) {
+            $name = $request->patient_name;
+            $query->whereHas('user', function ($q) use ($name) {
+                $q->where('name', 'like', "%{$name}%");
+            });
+        }
+
+        // Filter by Date
+        if ($request->filled('date')) {
+            $query->where('appointment_date', $request->date);
+        }
+
+        // Filter by Time
+        if ($request->filled('time')) {
+            $time = $request->time;
+            // Handle cases where DB might store 9:30:00 but input is 09:30, or vice versa
+            $query->where(function($q) use ($time) {
+                // Try exact match or substring
+                $q->where('appointment_time', 'like', "%{$time}%");
+                
+                // If input has leading zero (e.g. 09:30), also try without it (e.g. 9:30)
+                if (substr($time, 0, 1) === '0') {
+                    $noZero = substr($time, 1);
+                    $q->orWhere('appointment_time', 'like', "%{$noZero}%");
+                }
+            });
+        }
+
+        $appointment = $query->orderBy('appointment_date')
             ->orderBy('appointment_time')
             ->get()
             ->map(function (Appointment $item) {
@@ -35,6 +66,22 @@ class AppointmentController extends Controller
                     : null;
                 return $item;
             });
+        return response()->json($appointment);
+    }
+    public function show($id, Request $request)
+    {
+        $appointment = Appointment::with('user')->find($id);
+        if (! $appointment)
+        {
+            return response()->json(['msg'=> 'Appointment not found'], 404);
+        }
+        
+        $this->authorizeDoctor($appointment, $request);
+
+        $appointment->file_url = $appointment->file_upload
+            ? url('storage/' . $appointment->file_upload)
+            : null;
+
         return response()->json($appointment);
     }
 

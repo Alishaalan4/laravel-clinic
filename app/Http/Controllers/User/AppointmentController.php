@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\DoctorAvailability;
+use Illuminate\Support\Carbon;
 
 class AppointmentController extends Controller
 {
@@ -31,6 +32,46 @@ class AppointmentController extends Controller
         }
         return response()->json($appointment);
     }   
+    public function search(Request $request)
+    {
+        $user = $request->user();
+
+        $query = Appointment::with(['doctor'])
+            ->where('user_id', $user->id);
+
+        // Filter by Doctor Name
+        if ($request->filled('doctor_name')) {
+            $name = $request->doctor_name;
+            $query->whereHas('doctor', function ($q) use ($name) {
+                $q->where('name', 'like', "%{$name}%");
+            });
+        }
+
+        // Filter by Date
+        if ($request->filled('date')) {
+            $query->where('appointment_date', $request->date);
+        }
+
+        // Filter by Time
+        if ($request->filled('time')) {
+            $time = $request->time;
+            // Handle cases where DB might store 9:30:00 but input is 09:30, or vice versa
+            $query->where(function($q) use ($time) {
+                // Try exact match or substring
+                $q->where('appointment_time', 'like', "%{$time}%");
+                
+                // If input has leading zero (e.g. 09:30), also try without it (e.g. 9:30)
+                if (substr($time, 0, 1) === '0') {
+                    $noZero = substr($time, 1);
+                    $q->orWhere('appointment_time', 'like', "%{$noZero}%");
+                }
+            });
+        }
+
+        $appointments = $query->latest()->paginate(10);
+
+        return response()->json($appointments);
+    }
     public function store(Request $request)
     {
         $user = $request->user();

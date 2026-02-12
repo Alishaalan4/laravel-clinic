@@ -50,6 +50,7 @@ Route::middleware(['auth:sanctum','role:user'])->prefix('user')->group(function 
     Route::post('/appointments', [AppointmentController::class, 'store']); 
     Route::get('/appointments', [AppointmentController::class, 'index']);
     Route::get('/appointment/{appointment}',[AppointmentController::class,'show']);
+    Route::get('/appointments/search', [AppointmentController::class,'search']);
 });
 
 // doctor
@@ -66,6 +67,7 @@ Route::middleware(['auth:sanctum','role:doctor'])->prefix('doctor')->group(funct
 
     // Appointments
     Route::get('/appointments', [DoctorAppointmentController::class, 'index']);
+    Route::get('/appointments/{id}', [DoctorAppointmentController::class,'show']);
     Route::post('/appointments/{appointment}/accept', [DoctorAppointmentController::class, 'accept']);
     Route::post('/appointments/{appointment}/cancel', [DoctorAppointmentController::class, 'cancel']);
     Route::post('/appointments/{appointment}/complete', [DoctorAppointmentController::class, 'complete']);
