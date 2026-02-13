@@ -89,6 +89,7 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')->group(functio
     // Users
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/{user}', [UserController::class,'show']);
+    Route::post('/users',[UserController::class,'store']);
     Route::post('/users/{user}/changePassword', [UserController::class,'changePassword']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
 
